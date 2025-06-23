@@ -72,6 +72,7 @@ client.on('interactionCreate', async interaction => {
         channelId: voiceChannel.id,
         guildId: voiceChannel.guild.id,
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+        selfDeaf: false
       });
 
       connection.subscribe(player);
