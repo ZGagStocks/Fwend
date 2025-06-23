@@ -9,44 +9,35 @@ const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildVoiceStates
-  ]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates]
 });
 
-// Slash commands
 const commands = [
   new SlashCommandBuilder()
     .setName('play')
-    .setDescription('Plays a YouTube video in your voice channel')
-    .addStringOption(option =>
-      option.setName('url')
-        .setDescription('The YouTube video URL')
-        .setRequired(true)
-    ),
+    .setDescription('Play a YouTube video in your voice channel')
+    .addStringOption(opt => opt.setName('url').setDescription('YouTube URL').setRequired(true)),
   new SlashCommandBuilder()
     .setName('stop')
-    .setDescription('Stops the music and leaves the voice channel')
-].map(command => command.toJSON());
+    .setDescription('Stop playing and leave voice channel')
+].map(cmd => cmd.toJSON());
 
-// Register global slash commands
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 (async () => {
   try {
-    console.log('Registering global slash commands...');
+    console.log('Registering slash commands globally...');
     await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-    console.log('✅ Slash commands registered globally.');
+    console.log('✅ Slash commands registered.');
   } catch (err) {
-    console.error('❌ Command registration failed:', err);
+    console.error('Failed to register commands:', err);
   }
 })();
 
 const player = createAudioPlayer();
 
-client.on('ready', () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+client.once('ready', () => {
+  console.log(`Logged in as ${client.user.tag}`);
 });
 
 client.on('interactionCreate', async interaction => {
@@ -56,18 +47,15 @@ client.on('interactionCreate', async interaction => {
     const url = interaction.options.getString('url');
 
     if (!ytdl.validateURL(url)) {
-      return interaction.reply('❌ That is not a valid YouTube URL.');
+      return interaction.reply('❌ Invalid YouTube URL.');
     }
 
     const voiceChannel = interaction.member.voice.channel;
     if (!voiceChannel) {
-      return interaction.reply('❌ You must be in a voice channel to use this.');
+      return interaction.reply('❌ You need to be in a voice channel to play music.');
     }
 
     try {
-      const stream = ytdl(url, { filter: 'audioonly', highWaterMark: 1 << 25 });
-      const resource = createAudioResource(stream);
-
       const connection = joinVoiceChannel({
         channelId: voiceChannel.id,
         guildId: voiceChannel.guild.id,
@@ -75,13 +63,17 @@ client.on('interactionCreate', async interaction => {
         selfDeaf: false
       });
 
-      connection.subscribe(player);
-      player.play(resource);
+      const stream = ytdl(url, { filter: 'audioonly', highWaterMark: 1 << 25 });
 
-      interaction.reply(`▶️ Now playing: ${url}`);
-    } catch (err) {
-      console.error(err);
-      interaction.reply('❌ Error playing the video.');
+      const resource = createAudioResource(stream);
+
+      player.play(resource);
+      connection.subscribe(player);
+
+      await interaction.reply(`▶️ Now playing: ${url}`);
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      interaction.reply('❌ Could not play that video.');
     }
   }
 
@@ -97,4 +89,3 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(TOKEN);
-
