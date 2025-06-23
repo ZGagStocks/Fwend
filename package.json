@@ -1,24 +1,19 @@
 {
-  "name": "youtube-music-bot",
+  "name": "discord-youtube-bot",
   "version": "1.0.0",
-  "description": "A simple Discord bot that plays YouTube audio in VC using slash commands.",
+  "description": "A Discord bot that plays YouTube audio in VC using slash commands.",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
   },
-  "keywords": [
-    "discord",
-    "bot",
-    "music",
-    "youtube",
-    "discord.js"
-  ],
-  "author": "You",
+  "keywords": [],
+  "author": "",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/rest": "^1.8.0",
-    "@discordjs/voice": "^0.16.0",
+    "@discordjs/rest": "^1.7.1",
+    "@discordjs/voice": "^0.14.0",
     "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
     "ytdl-core": "^4.11.4"
   }
 }
